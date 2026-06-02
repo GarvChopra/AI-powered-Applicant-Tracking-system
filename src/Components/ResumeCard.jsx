@@ -14,7 +14,7 @@ const ResumeCard = ({ resume }) => {
           <h2 className="text-black font-bold break-after">
             {resume.companyName}
           </h2>
-          <h3 className="text-gray-500 text-4xl">job: {resume.jobTitle}</h3>
+          <h3 className="text-gray-500 text-4xl">resume: {resume.jobTitle}</h3>
           <div
           className="flex-shrink-0 flex  "
           >
