@@ -1,10 +1,11 @@
 import React, { useEffect } from 'react'
-import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom'
+import { Routes, Route, useNavigate } from 'react-router-dom'
 import Navbar from './Components/Navbar'
 import { resumes } from "./constants";
 import ResumeCard from './Components/ResumeCard';
 import Auth from './routes/Auth';
 import { usePuterStore } from './lib/puter';
+import Upload from "./routes/Upload";
 
 const Home = () => {
   const { auth } = usePuterStore();
@@ -46,6 +47,7 @@ const App = () => {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/auth" element={<Auth />} />
+        <Route path="/upload" element={<Upload />} />
       </Routes>
   
   );

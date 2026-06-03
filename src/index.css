@@ -19,6 +19,9 @@
 }
 
 html,
+html {
+  zoom: 100%;
+}
 body {
   @apply bg-white;
 }
