@@ -4,8 +4,8 @@ import FileUploader from '../Components/FileUploader';
 import { usePuterStore } from '../lib/puter';        
 import { useNavigate } from 'react-router-dom';
 import { convertPdfToImage } from '../lib/pdf2img';   
-import { prepareInstructions } from '../constants';      
-import { genrateUUID } from '../lib/utils';
+import { prepareInstructions } from '../constants';     
+import { generateUUID } from '../lib/utils'; 
 
 const Upload = () => { 
   const { auth, isLoading, fs, ai, kv } = usePuterStore();
@@ -36,7 +36,7 @@ const Upload = () => {
 
     setStatusText("Saving data...");
 
-    const uuid=genrateUUID();
+    const uuid=generateUUID();
     const data= {
       id: uuid,
       resumePath: uploadedFile.path,
@@ -46,7 +46,7 @@ const Upload = () => {
       jobDescription,
       
     }
-    await kv.set(uuid, JSON.stringify(data));
+    await kv.set(`resume:${uuid}`, JSON.stringify(data));
     setStatusText("Analysis complete!");
     const feedback = await ai.feedback(
       uploadedFile.path,
@@ -59,9 +59,10 @@ const Upload = () => {
     : feedback.message.content[0].text; 
 
   data.feedback = JSON.parse(feedbackText);
-  await kv.set(`${uuid}-feedback`, JSON.stringify(data));
+  await kv.set(`resume:${uuid}`, JSON.stringify(data));
   setStatusText("Feedback received! Redirecting...");
   console.log(data);
+  navigate(`/resume/${uuid}`);
   }
   
 
