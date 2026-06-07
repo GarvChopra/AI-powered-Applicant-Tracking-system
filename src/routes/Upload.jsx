@@ -14,57 +14,59 @@ const Upload = () => {
   const [statusText, setStatusText] = useState("Analyzing your resume...");
   const [file, setFile] = useState(null);
 
-
   const handleFileSelect = (file) => {
     setFile(file);
   }
 
   const handleAnalyze = async ({ companyName, jobTitle, jobDescription, file }) => {
     setIsProcessing(true);
-    setStatusText("Analyzing your resume...");
+    setStatusText("Uploading file...");
     const uploadedFile = await fs.upload([file]);
+    if (!uploadedFile) return setStatusText("Failed to upload resume.");
 
-    if (!uploadedFile) return setStatusText("Failed to upload resume. Please try again.");
+    setStatusText("Processing image...");
+    let imageFile;
+    if (file.type === 'application/pdf') {
+      const result = await convertPdfToImage(file);
+      if (!result.file) return setStatusText("Error: " + result.error);
+      imageFile = result.file;
+    } else {
+      imageFile = file;
+    }
 
-    setStatusText("Generating insights...");
-    const imageFile = await convertPdfToImage(file);
-    if (!imageFile.file) return setStatusText("Error: " + imageFile.error);
-
-    setStatusText("uploading image...");
-    const uploadedImage = await fs.upload([imageFile.file]);
-    if (!uploadedImage) return setStatusText("Failed to upload resume image. Please try again.");
+    setStatusText("Uploading image...");
+    const uploadedImage = await fs.upload([imageFile]);
+    if (!uploadedImage) return setStatusText("Failed to upload image.");
 
     setStatusText("Saving data...");
-
-    const uuid=generateUUID();
-    const data= {
+    const uuid = generateUUID();
+    const data = {
       id: uuid,
       resumePath: uploadedFile.path,
       imagePath: uploadedImage.path,
       companyName,
       jobTitle,
       jobDescription,
-      
     }
     await kv.set(`resume:${uuid}`, JSON.stringify(data));
-    setStatusText("Analysis complete!");
+
+    setStatusText("Analyzing...");
     const feedback = await ai.feedback(
       uploadedFile.path,
-      prepareInstructions({jobTitle, jobDescription})
+      prepareInstructions({ jobTitle, jobDescription })
     )
-    if(!feedback) return setStatusText("Failed to get feedback. Please try again.");
+    if (!feedback) return setStatusText("Failed to get feedback.");
 
     const feedbackText = typeof feedback.message.content === 'string'
-    ? feedback.message.content
-    : feedback.message.content[0].text; 
+      ? feedback.message.content
+      : feedback.message.content[0].text;
 
-  data.feedback = JSON.parse(feedbackText);
-  await kv.set(`resume:${uuid}`, JSON.stringify(data));
-  setStatusText("Feedback received! Redirecting...");
-  console.log(data);
-  navigate(`/resume/${uuid}`);
+    data.feedback = JSON.parse(feedbackText);
+    await kv.set(`resume:${uuid}`, JSON.stringify(data));
+    setStatusText("Feedback received! Redirecting...");
+    console.log(data);
+    navigate(`/resume/${uuid}`);
   }
-  
 
   const handleSubmit = (e) => {
     e.preventDefault();                               
@@ -73,12 +75,9 @@ const Upload = () => {
     const companyName = formData.get('company-name');
     const jobTitle = formData.get('job-title');
     const jobDescription = formData.get('job-description');
-    
     if (!file) return alert("Please upload your resume");
-
     handleAnalyze({ companyName, jobTitle, jobDescription, file }); 
   }
-  
 
   return (
     <div className="bg-[url('/images/bg-main.svg')] bg-cover h-screen flex flex-col">
@@ -93,7 +92,7 @@ const Upload = () => {
               <img src="/images/resume-scan.gif" className="w-full" alt="Processing..." />
             </>
           ) : (
-            <h2>Drop your Resume for an Ats score and improvement tips</h2>
+            <h2>Drop your Resume for an ATS score and improvement tips</h2>
           )}
 
           {!isProcessing && (
