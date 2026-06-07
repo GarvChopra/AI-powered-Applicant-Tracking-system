@@ -4,7 +4,7 @@ import FileUploader from '../Components/FileUploader';
 import { usePuterStore } from '../lib/puter';        
 import { useNavigate } from 'react-router-dom';
 import { convertPdfToImage } from '../lib/pdf2img';   
-import { prepareInstructions } from '../Constants';   
+import { prepareInstructions } from '../Constants';     
 import { generateUUID } from '../lib/utils'; 
 
 const Upload = () => { 
@@ -61,7 +61,13 @@ const Upload = () => {
       ? feedback.message.content
       : feedback.message.content[0].text;
 
-    data.feedback = JSON.parse(feedbackText);
+    try {
+      data.feedback = JSON.parse(feedbackText);
+    } catch (err) {
+      console.error("Failed to parse feedback:", feedbackText);
+      return setStatusText("Failed to parse AI feedback. Please try again.");
+    }
+
     await kv.set(`resume:${uuid}`, JSON.stringify(data));
     setStatusText("Feedback received! Redirecting...");
     console.log(data);
